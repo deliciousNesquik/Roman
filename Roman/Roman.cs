@@ -4,7 +4,6 @@ public class Roman
 {
     
     private readonly int _value;
-    private readonly string _svalue;
     
     private static readonly Dictionary<char, int> RomanMap = new()
     {
@@ -27,7 +26,6 @@ public class Roman
 
     public Roman(int value){
         _value = Math.Abs(value);
-        _svalue = ToRoman(_value);
     }
     public Roman() : this(0) 
     {}
@@ -50,7 +48,7 @@ public class Roman
     /// Возвращает строковое римское представление числа
     /// </summary>
     /// <returns></returns>
-    public override string ToString() => _svalue;
+    public override string ToString() => ToRoman(_value);
     
     /// <summary>
     /// Возвращает целочисленное значение римского числа
