@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Roman;
+﻿namespace Roman;
 
 public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 {
@@ -9,11 +7,11 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     /// <summary>Таблица для преобразования чисел в римские символы.</summary>
     private static readonly (int Value, string Symbol)[] Map =
-    {
+    [
         (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"),
         (100, "C"),  (90, "XC"),  (50, "L"),  (40, "XL"),
         (10, "X"),   (9, "IX"),   (5, "V"),   (4, "IV"), (1, "I")
-    };
+    ];
 
     #region Конструкторы
 
@@ -24,7 +22,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
     public Roman(int value)
     {
         if (value < 1 || value > 3999)
-            throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 1 and 3999.");
+            throw new ArgumentOutOfRangeException("", "Value must be between 1 and 3999.");
         _value = value;
     }
 
@@ -44,7 +42,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         if (b is null) throw new ArgumentNullException(nameof(b));
 
         long sum = (long)a._value + b._value;
-        if (sum > 3999) throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be ≤ 3999.");
+        if (sum > 3999) throw new ArgumentOutOfRangeException("", "Resulting value must be ≤ 3999.");
         return new Roman((int)sum);
     }
     public static Roman operator -(Roman a, Roman b)
@@ -54,7 +52,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         
         var result = a._value - b._value;
         if (result < 1)
-            throw new ArgumentOutOfRangeException(nameof(b), "Roman numerals cannot represent zero or negative values.");
+            throw new ArgumentOutOfRangeException("", "Roman numerals cannot represent zero or negative values.");
         return new Roman(result);
     }
 
@@ -143,7 +141,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         roman = roman.ToUpperInvariant();
 
         if (roman[0] == '-')
-            throw new ArgumentOutOfRangeException(nameof(roman), "Value must be positive.");
+            throw new ArgumentOutOfRangeException("", "Value must be positive.");
 
         var result = 0;
         for (int i = roman.Length - 1, before = 0; i >= 0; i--)
@@ -155,7 +153,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         }
 
         if (result < 1 || result > 3999)
-            throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.");
+            throw new ArgumentOutOfRangeException("", "Value must be between 1 and 3999.");
 
         return result;
     }
@@ -163,12 +161,12 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
     private static string ToRoman(int value)
     {
         if (value < 1 || value > 3999)
-            throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 1 and 3999.");
+            throw new ArgumentOutOfRangeException("", "Value must be between 1 and 3999.");
 
-        // Максимальная длинна римского числа (15 символов) 1 символ для безопастности
+        // Максимальная длинна римского числа (15 символов) 1 символ для безопасности
         Span<char> buffer = stackalloc char[16];
+        
         var pos = 0;
-
         foreach (var (num, symbol) in Map)
         {
             while (value >= num)
