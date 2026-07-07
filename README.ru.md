@@ -38,7 +38,7 @@
 - Иммутабельный тип — каждая операция возвращает новое значение
 - Чёткая семантика `null` в операторах сравнения
 - Регистронезависимый парсинг с обрезкой пробелов
-- Лояльный (по умолчанию) и строгий (`RomanStyle.Strict`) режимы парсинга
+- Строгий (по умолчанию) и лояльный (`RomanStyle.Lenient`) режимы парсинга
 - `TryParse` для разбора без исключений
 - Преобразование с минимумом аллокаций через `stackalloc Span<char>`
 - Без внешних зависимостей
@@ -162,40 +162,39 @@ p == q;   // true
 p >= q;   // true
 ```
 
-### Режимы парсинга (лояльный / строгий)
+### Режимы парсинга (строгий / лояльный)
 
-По умолчанию парсинг **лоялен** — принимает неканонические формы, например `"IIII"` = `4`.
-Это относится к конструкторам, `Parse(string)` и `TryParse(string, …)`:
+По умолчанию парсинг **строгий** — принимает только каноническую запись и отвергает
+неканонические формы, например `"IIII"`. Это относится к конструкторам, `Parse(string)`
+и `TryParse(string, …)`:
 
 ```csharp
-var roman = new Roman("IIII");  // разбирается как 4
-Console.WriteLine(roman);       // IV (вывод всегда канонический)
+new Roman("IV");    // OK -> 4
+new Roman("IIII");  // FormatException: не каноническая запись
 ```
 
-Если нужна **строгая** валидация (только каноническая запись), передайте `RomanStyle.Strict`
+Если нужен **лояльный** разбор (принимать неканонические формы), передайте `RomanStyle.Lenient`
 в перегрузки `Parse` / `TryParse` (по аналогии с `int.Parse(string, NumberStyles)`):
 
 ```csharp
-Roman.Parse("IV", RomanStyle.Strict);    // OK -> 4
-Roman.Parse("IIII", RomanStyle.Strict);  // FormatException: не каноническая запись
+var roman = Roman.Parse("IIII", RomanStyle.Lenient);  // разбирается как 4
+Console.WriteLine(roman);                             // IV (вывод всегда канонический)
 
-if (Roman.TryParse("IIII", RomanStyle.Strict, out var r))
-    Console.WriteLine(r);
-else
-    Console.WriteLine("Неканоническая запись!");
+if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
+    Console.WriteLine(r);                             // IV
 ```
 
-`RomanStyle.Lenient` (значение по умолчанию для перегрузок) повторяет лояльное поведение.
-Строгий режим по-прежнему отвергает мусорные символы (`ArgumentException`) и значения вне
-диапазона (`ArgumentOutOfRangeException`); валидная, но неканоническая запись даёт
-`FormatException`.
+`RomanStyle.Strict` (значение по умолчанию) отвергает мусорные символы (`ArgumentException`),
+значения вне диапазона (`ArgumentOutOfRangeException`) и валидную, но неканоническую запись
+(`FormatException`).
 
 ## Ограничения
 
 - **Диапазон 1–3999** (`MMMCMXCIX`). Значения вне диапазона бросают
   `ArgumentOutOfRangeException`. Нет представления для `0` и отрицательных чисел.
-- **Round-trip сохраняет значение, а не строку.** `new Roman("IIII").ToString()` вернёт
-  `"IV"`. Используйте `RomanStyle.Strict`, если нужно отвергать неканонический ввод.
+- **Round-trip сохраняет значение, а не строку.**
+  `Roman.Parse("IIII", RomanStyle.Lenient).ToString()` вернёт `"IV"`. Строгий разбор
+  (по умолчанию) отвергает неканонический ввод сразу.
 - Результаты арифметики должны оставаться в 1–3999, иначе бросается исключение.
 
 ## Справочник API
@@ -205,7 +204,7 @@ else
 | Конструктор | Описание |
 |-------------|----------|
 | `Roman(int value)` | Создаёт значение из целого числа (1–3999) |
-| `Roman(string roman)` | Создаёт значение из строки (лояльно) |
+| `Roman(string roman)` | Создаёт значение из строки (строго) |
 | `Roman(Roman other)` | Конструктор копирования |
 
 ### Статические методы
@@ -213,18 +212,18 @@ else
 | Метод | Описание |
 |-------|----------|
 | `Parse(int value)` | Разбирает `int`; бросает при ошибке |
-| `Parse(string roman)` | Разбирает строку (лояльно); бросает при ошибке |
+| `Parse(string roman)` | Разбирает строку (строго); бросает при ошибке |
 | `Parse(string roman, RomanStyle style)` | Разбор с режимом; `Strict` бросает `FormatException` на неканонической записи |
 | `TryParse(int value, out Roman? result)` | Разбор `int` без исключений |
-| `TryParse(string roman, out Roman? result)` | Разбор строки без исключений (лояльно) |
+| `TryParse(string roman, out Roman? result)` | Разбор строки без исключений (строго) |
 | `TryParse(string roman, RomanStyle style, out Roman? result)` | Разбор строки без исключений с режимом |
 
 ### Перечисления
 
 | `RomanStyle` | Описание |
 |--------------|----------|
-| `Lenient` | Лояльный разбор (по умолчанию): принимает неканонические формы |
-| `Strict` | Строгий разбор: только каноническая запись |
+| `Strict` | Строгий разбор (по умолчанию): только каноническая запись |
+| `Lenient` | Лояльный разбор: принимает неканонические формы |
 
 ### Методы экземпляра
 

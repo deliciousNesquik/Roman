@@ -38,7 +38,7 @@ integers, arithmetic, and comparison. Immutable, allocation-light, and fully uni
 - Immutable type — every operation returns a new value
 - Well-defined `null` semantics in comparison operators
 - Case-insensitive parsing with surrounding whitespace trimmed
-- Lenient (default) and strict (`RomanStyle.Strict`) parsing modes
+- Strict (default) and lenient (`RomanStyle.Lenient`) parsing modes
 - `TryParse` for exception-free parsing
 - Allocation-light conversion via `stackalloc Span<char>`
 - No external dependencies
@@ -162,40 +162,38 @@ p == q;   // true
 p >= q;   // true
 ```
 
-### Parsing modes (lenient / strict)
+### Parsing modes (strict / lenient)
 
-By default parsing is **lenient** — it accepts non-canonical forms such as `"IIII"` for `4`.
-This applies to the constructors, `Parse(string)` and `TryParse(string, …)`:
+By default parsing is **strict** — it accepts only the canonical form and rejects non-canonical
+input such as `"IIII"`. This applies to the constructors, `Parse(string)` and `TryParse(string, …)`:
 
 ```csharp
-var roman = new Roman("IIII");  // parses as 4
-Console.WriteLine(roman);       // IV (output is always canonical)
+new Roman("IV");    // OK -> 4
+new Roman("IIII");  // FormatException: not canonical
 ```
 
-For **strict** validation (canonical form only), pass `RomanStyle.Strict` to the `Parse` /
+For **lenient** parsing (accept non-canonical forms), pass `RomanStyle.Lenient` to the `Parse` /
 `TryParse` overloads — modeled after `int.Parse(string, NumberStyles)`:
 
 ```csharp
-Roman.Parse("IV", RomanStyle.Strict);    // OK -> 4
-Roman.Parse("IIII", RomanStyle.Strict);  // FormatException: not canonical
+var roman = Roman.Parse("IIII", RomanStyle.Lenient);  // parses as 4
+Console.WriteLine(roman);                              // IV (output is always canonical)
 
-if (Roman.TryParse("IIII", RomanStyle.Strict, out var r))
-    Console.WriteLine(r);
-else
-    Console.WriteLine("Non-canonical form!");
+if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
+    Console.WriteLine(r);                              // IV
 ```
 
-`RomanStyle.Lenient` (the default for the overloads) reproduces the lenient behavior. Strict
-mode still rejects garbage characters (`ArgumentException`) and out-of-range values
-(`ArgumentOutOfRangeException`); an otherwise valid but non-canonical form yields
-`FormatException`.
+`RomanStyle.Strict` (the default) rejects garbage characters (`ArgumentException`), out-of-range
+values (`ArgumentOutOfRangeException`), and otherwise valid but non-canonical forms
+(`FormatException`).
 
 ## Limitations
 
 - **Range is 1–3999** (`MMMCMXCIX`). Values outside this range throw
   `ArgumentOutOfRangeException`. There is no representation for `0` or negatives.
-- **Round-trip is value-preserving, not string-preserving.** `new Roman("IIII").ToString()`
-  returns `"IV"`. Use `RomanStyle.Strict` if you need to reject non-canonical input.
+- **Round-trip is value-preserving, not string-preserving.**
+  `Roman.Parse("IIII", RomanStyle.Lenient).ToString()` returns `"IV"`. Strict parsing (the
+  default) rejects non-canonical input outright.
 - Arithmetic results must stay within 1–3999, otherwise they throw.
 
 ## API reference
@@ -205,7 +203,7 @@ mode still rejects garbage characters (`ArgumentException`) and out-of-range val
 | Constructor | Description |
 |-------------|-------------|
 | `Roman(int value)` | Creates a value from an integer (1–3999) |
-| `Roman(string roman)` | Creates a value from a string (lenient) |
+| `Roman(string roman)` | Creates a value from a string (strict) |
 | `Roman(Roman other)` | Copy constructor |
 
 ### Static methods
@@ -213,18 +211,18 @@ mode still rejects garbage characters (`ArgumentException`) and out-of-range val
 | Method | Description |
 |--------|-------------|
 | `Parse(int value)` | Parses an `int`; throws on error |
-| `Parse(string roman)` | Parses a string (lenient); throws on error |
+| `Parse(string roman)` | Parses a string (strict); throws on error |
 | `Parse(string roman, RomanStyle style)` | Parses with a mode; `Strict` throws `FormatException` on non-canonical input |
 | `TryParse(int value, out Roman? result)` | Exception-free `int` parsing |
-| `TryParse(string roman, out Roman? result)` | Exception-free string parsing (lenient) |
+| `TryParse(string roman, out Roman? result)` | Exception-free string parsing (strict) |
 | `TryParse(string roman, RomanStyle style, out Roman? result)` | Exception-free string parsing with a mode |
 
 ### Enums
 
 | `RomanStyle` | Description |
 |--------------|-------------|
-| `Lenient` | Lenient parsing (default): accepts non-canonical forms |
-| `Strict` | Strict parsing: canonical form only |
+| `Strict` | Strict parsing (default): canonical form only |
+| `Lenient` | Lenient parsing: accepts non-canonical forms |
 
 ### Instance methods
 

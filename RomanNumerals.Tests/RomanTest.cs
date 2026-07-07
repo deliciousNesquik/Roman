@@ -769,14 +769,43 @@ public class RomanTest
     [TestMethod]
     [DataRow("IIII", 4)]
     [DataRow("VX", 5)]
-    public void Parse_Lenient_NonCanonicalForm_ParsesLikeDefault(string roman, int expected)
+    public void Parse_Lenient_NonCanonicalForm_Parses(string roman, int expected)
     {
-        // Явный Lenient ведёт себя как старый Parse(string).
-        var explicitLenient = Roman.Parse(roman, RomanStyle.Lenient);
-        var legacy = Roman.Parse(roman);
+        // Явный Lenient по-прежнему принимает неканонические формы.
+        var result = Roman.Parse(roman, RomanStyle.Lenient);
 
-        Assert.AreEqual(expected, explicitLenient.ToInt());
-        Assert.AreEqual(legacy.ToInt(), explicitLenient.ToInt());
+        Assert.AreEqual(expected, result.ToInt());
+    }
+
+    [TestMethod]
+    [DataRow("IIII")]
+    [DataRow("VX")]
+    [DataRow("XXXX")]
+    public void Parse_Default_NonCanonicalForm_ThrowsFormatException(string roman)
+    {
+        // По умолчанию разбор строгий: неканоническая запись отвергается.
+        var ex = Assert.ThrowsExactly<FormatException>(() => Roman.Parse(roman));
+        StringAssert.Contains(ex.Message, "canonical");
+    }
+
+    [TestMethod]
+    [DataRow("IIII")]
+    [DataRow("VX")]
+    public void Ctor_String_DefaultStrict_NonCanonicalForm_ThrowsFormatException(string roman)
+    {
+        // Конструктор строки использует строгий разбор по умолчанию.
+        var ex = Assert.ThrowsExactly<FormatException>(() => new Roman(roman));
+        StringAssert.Contains(ex.Message, "canonical");
+    }
+
+    [TestMethod]
+    public void TryParse_String_DefaultStrict_NonCanonicalForm_ReturnsFalse()
+    {
+        // TryParse без указания режима также строгий и не пробрасывает FormatException.
+        var success = Roman.TryParse("IIII", out var result);
+
+        Assert.IsFalse(success);
+        Assert.IsNull(result);
     }
 
     [TestMethod]

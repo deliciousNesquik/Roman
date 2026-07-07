@@ -37,8 +37,16 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         _value = value;
     }
 
-    /// <summary>Создаёт римское число из строкового представления.</summary>
-    public Roman(string roman) : this(ToInt(roman))
+    /// <summary>
+    ///     Создаёт римское число из канонического строкового представления.
+    ///     Разбор строгий (см. <see cref="RomanStyle.Strict"/>) — поведение по умолчанию:
+    ///     неканонические формы вроде "IIII" отвергаются. Для лояльного разбора
+    ///     используйте <see cref="Parse(string, RomanStyle)"/> с <see cref="RomanStyle.Lenient"/>.
+    /// </summary>
+    /// <exception cref="ArgumentException">Строка пуста или содержит недопустимые символы.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Значение выходит за диапазон 1–3999.</exception>
+    /// <exception cref="FormatException">Запись неканонична.</exception>
+    public Roman(string roman) : this(ParseToInt(roman, RomanStyle.Strict))
     {
     }
 
@@ -150,17 +158,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
     /// </exception>
     public static Roman Parse(string roman, RomanStyle style)
     {
-        var result = new Roman(roman);
-
-        if (style == RomanStyle.Strict)
-        {
-            var normalized = Normalize(roman);
-            if (result.ToString() != normalized)
-                throw new FormatException(
-                    $"'{roman}' is not a canonical Roman numeral; the canonical form is '{result}'.");
-        }
-
-        return result;
+        return new Roman(ParseToInt(roman, style));
     }
 
     public static bool TryParse(int value, out Roman? result)
@@ -187,6 +185,12 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         catch (ArgumentException)
         {
             // ArgumentOutOfRangeException наследует ArgumentException — один блок ловит оба.
+            result = null;
+            return false;
+        }
+        catch (FormatException)
+        {
+            // В строгом режиме (по умолчанию) неканоническая запись бросает FormatException.
             result = null;
             return false;
         }
@@ -257,23 +261,36 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
             : throw new ArgumentException($"Invalid Roman numeral character: '{c}'.");
     }
 
-    private static int ToInt(string roman)
+    /// <summary>
+    ///     Разбирает строку в целое значение. В режиме <see cref="RomanStyle.Strict"/>
+    ///     дополнительно проверяет, что запись канонична.
+    /// </summary>
+    private static int ParseToInt(string roman, RomanStyle style)
     {
-        roman = Normalize(roman);
+        var normalized = Normalize(roman);
 
-        if (roman.StartsWith("-"))
+        if (normalized.StartsWith("-"))
             throw new ArgumentOutOfRangeException(nameof(roman), "Value must be positive.");
 
         long result = 0;
-        for (int i = roman.Length - 1, before = 0; i >= 0; i--)
+        for (int i = normalized.Length - 1, before = 0; i >= 0; i--)
         {
-            var current = GetValue(roman[i]);
+            var current = GetValue(normalized[i]);
 
             result += current < before ? -current : current;
             before = current;
         }
 
-        return result is < 1 or > 3999 ? throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.") : (int)result;
+        if (result is < 1 or > 3999)
+            throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.");
+
+        var value = (int)result;
+
+        if (style == RomanStyle.Strict && ToRoman(value) != normalized)
+            throw new FormatException(
+                $"'{roman}' is not a canonical Roman numeral; the canonical form is '{ToRoman(value)}'.");
+
+        return value;
     }
 
     private static string ToRoman(int value)
