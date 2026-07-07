@@ -154,7 +154,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
         if (style == RomanStyle.Strict)
         {
-            var normalized = roman.Trim().ToUpperInvariant();
+            var normalized = Normalize(roman);
             if (result.ToString() != normalized)
                 throw new FormatException(
                     $"'{roman}' is not a canonical Roman numeral; the canonical form is '{result}'.");
@@ -237,6 +237,19 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     #region Служебные методы
 
+    /// <summary>
+    ///     Приводит строку к каноническому для разбора виду: обрезает пробелы и
+    ///     переводит в верхний регистр. Единая точка нормализации для всех путей парсинга.
+    /// </summary>
+    /// <exception cref="ArgumentException">Строка пуста или состоит из пробелов.</exception>
+    private static string Normalize(string roman)
+    {
+        if (string.IsNullOrWhiteSpace(roman))
+            throw new ArgumentException("Roman numeral cannot be empty.", nameof(roman));
+
+        return roman.Trim().ToUpperInvariant();
+    }
+
     private static int GetValue(char c)
     {
         return CharValues.TryGetValue(c, out var value)
@@ -246,10 +259,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     private static int ToInt(string roman)
     {
-        if (string.IsNullOrWhiteSpace(roman))
-            throw new ArgumentException("Roman numeral cannot be empty.", nameof(roman));
-
-        roman = roman.Trim().ToUpperInvariant();
+        roman = Normalize(roman);
 
         if (roman.StartsWith("-"))
             throw new ArgumentOutOfRangeException(nameof(roman), "Value must be positive.");
