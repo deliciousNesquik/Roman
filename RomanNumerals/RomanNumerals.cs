@@ -212,11 +212,11 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         }
     }
 
-    public static implicit operator int(Roman r)                                                                                                                                         
-    {                                                                                                                                                                                    
-        ArgumentNullException.ThrowIfNull(r);                                                                                                                                            
-        return r._value;                                                                                                                                                                 
-    }  
+    public static implicit operator int(Roman r)
+    {
+        ArgumentNullException.ThrowIfNull(r);
+        return r._value;
+    }
 
     public static explicit operator Roman(int value)
     {
@@ -253,7 +253,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
         if (roman.StartsWith("-"))
             throw new ArgumentOutOfRangeException(nameof(roman), "Value must be positive.");
-        
+
         long result = 0;
         for (int i = roman.Length - 1, before = 0; i >= 0; i--)
         {
