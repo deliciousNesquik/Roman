@@ -7,7 +7,7 @@
         
         <RootNamespace>RomanNumerals</RootNamespace>
         <PackageId>Roman</PackageId>
-        <PackageVersion>1.1.1</PackageVersion>
+        <PackageVersion>2.0.0</PackageVersion>
         <Authors>deliciousNesquik</Authors>
         <Description>A small, dependency-free C# library for Roman numerals: conversion to/from Arabic integers (1–3999), arithmetic, comparison, and lenient/strict parsing. Immutable and allocation-light.</Description>
         <PackageTags>roman;numerals;roman-numerals;converter</PackageTags>
