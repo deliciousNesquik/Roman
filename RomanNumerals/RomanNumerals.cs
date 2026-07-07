@@ -65,7 +65,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         ArgumentNullException.ThrowIfNull(b);
 
         var sum = (long)a._value + b._value;
-        return sum > 3999 ? throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be ≤ 3999.") : new Roman((int)sum);
+        return sum > 3999 ? throw new OverflowException("Sum exceeds the maximum Roman numeral value (3999).") : new Roman((int)sum);
     }
 
     public static Roman operator -(Roman a, Roman b)
@@ -75,8 +75,8 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
         var result = a._value - b._value;
         return result < 1
-            ? throw new ArgumentOutOfRangeException(nameof(b),
-                "Roman numerals cannot represent zero or negative values.")
+            ? throw new OverflowException(
+                "Difference is below the minimum Roman numeral value (1); Roman numerals cannot represent zero or negative values.")
             : new Roman(result);
     }
 
@@ -86,7 +86,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         ArgumentNullException.ThrowIfNull(b);
 
         var prod = (long)a._value * b._value;
-        return prod > 3999 ? throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be ≤ 3999.") : new Roman((int)prod);
+        return prod > 3999 ? throw new OverflowException("Product exceeds the maximum Roman numeral value (3999).") : new Roman((int)prod);
     }
 
     public static Roman operator /(Roman a, Roman b)
@@ -96,7 +96,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
         var result = a._value / b._value;
         return result < 1
-            ? throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be >= 1.")
+            ? throw new OverflowException("Quotient is below the minimum Roman numeral value (1).")
             : new Roman(result);
     }
 

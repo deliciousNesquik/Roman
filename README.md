@@ -120,8 +120,8 @@ var r5 = (Roman)99;            // XCIX
 ### Arithmetic
 
 Operations compute on the underlying integer and re-validate the result against the 1–3999
-range, throwing `ArgumentOutOfRangeException` on overflow/underflow. Division is integer
-division.
+range, throwing `OverflowException` when the result overflows (> 3999) or underflows (< 1).
+Division is integer division.
 
 ```csharp
 new Roman(10) + new Roman(5);   // XV  (15)

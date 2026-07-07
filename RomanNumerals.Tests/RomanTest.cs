@@ -195,13 +195,12 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void Addition_ExceedsUpperLimit_ThrowsArgumentOutOfRangeException()
+    public void Addition_ExceedsUpperLimit_ThrowsOverflowException()
     {
         var a = new Roman(3999);
         var b = new Roman(1);
 
-        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => a + b);
-        Assert.AreEqual("b", ex.ParamName);
+        var ex = Assert.ThrowsExactly<OverflowException>(() => a + b);
         StringAssert.Contains(ex.Message, "3999");
     }
 
@@ -241,24 +240,22 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void Subtraction_ResultZero_ThrowsArgumentOutOfRangeException()
+    public void Subtraction_ResultZero_ThrowsOverflowException()
     {
         var a = new Roman(5);
         var b = new Roman(5);
 
-        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => a - b);
-        Assert.AreEqual("b", ex.ParamName);
+        var ex = Assert.ThrowsExactly<OverflowException>(() => a - b);
         StringAssert.Contains(ex.Message, "zero or negative");
     }
 
     [TestMethod]
-    public void Subtraction_ResultNegative_ThrowsArgumentOutOfRangeException()
+    public void Subtraction_ResultNegative_ThrowsOverflowException()
     {
         var a = new Roman(5);
         var b = new Roman(10);
 
-        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => a - b);
-        Assert.AreEqual("b", ex.ParamName);
+        Assert.ThrowsExactly<OverflowException>(() => a - b);
     }
 
     #endregion
@@ -297,13 +294,12 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void Multiplication_ExceedsUpperLimit_ThrowsArgumentOutOfRangeException()
+    public void Multiplication_ExceedsUpperLimit_ThrowsOverflowException()
     {
         var a = new Roman(2000);
         var b = new Roman(3);
 
-        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => a * b);
-        Assert.AreEqual("b", ex.ParamName);
+        var ex = Assert.ThrowsExactly<OverflowException>(() => a * b);
         StringAssert.Contains(ex.Message, "3999");
     }
 
@@ -353,14 +349,13 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void Division_ResultLessThanOne_ThrowsArgumentOutOfRangeException()
+    public void Division_ResultLessThanOne_ThrowsOverflowException()
     {
         var a = new Roman(1);
         var b = new Roman(2);
 
-        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => a / b);
-        Assert.AreEqual("b", ex.ParamName);
-        StringAssert.Contains(ex.Message, ">= 1");
+        var ex = Assert.ThrowsExactly<OverflowException>(() => a / b);
+        StringAssert.Contains(ex.Message, "minimum");
     }
 
     #endregion
