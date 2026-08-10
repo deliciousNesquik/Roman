@@ -1,8 +1,9 @@
 # Roman
 
+[![NuGet Downloads](https://img.shields.io/nuget/dt/:Roman.svg)](https://www.nuget.org/packages/Roman/)
+[![NuGet Version](https://img.shields.io/nuget/v/Roman.svg)](https://www.nuget.org/packages/Roman/)
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
 [![C#](https://img.shields.io/badge/C%23-13.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
-[![NuGet](https://img.shields.io/nuget/v/Roman.svg)](https://www.nuget.org/packages/Roman/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/deliciousNesquik/roman/blob/main/LICENSE.md)
 [![CodeOfConduct](https://img.shields.io/badge/code_of_conduct-enforced_)](https://github.com/deliciousNesquik/roman/blob/main/CODE_OF_CONDUCT.md)
 
