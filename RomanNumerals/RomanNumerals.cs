@@ -24,7 +24,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         Map.Where(entry => entry.Symbol.Length == 1)
             .ToDictionary(entry => entry.Symbol[0], entry => entry.Value);
 
-    #region Конструкторы
+    #region Ctors
 
     /// <summary>Creates a Roman numeral by its integer value (1–3999).</summary>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is outside the range 1–3999.</exception>
@@ -57,7 +57,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     #endregion
 
-    #region Арифметика и сравнение
+    #region Arithmetic and Comparison
 
     /// <summary>Adds two Roman numerals.</summary>
     /// <param name="a">First Roman numeral</param>
@@ -186,7 +186,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     #endregion
 
-    #region Преобразования
+    #region Parsing and Conversion
 
     /// <summary>Parses an integer value into a Roman numeral.</summary>
     /// <param name="value">The integer value to parse.</param>
@@ -321,7 +321,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     #endregion
 
-    #region Служебные методы
+    #region Helpers
 
     /// <summary>
     ///     Converts the string to a canonical form for parsing: trims whitespace and
@@ -408,7 +408,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     #endregion
 
-    #region Equals / GetHashCode
+    #region Compare, Equals and GetHashCode
 
     /// <summary>Compares this Roman numeral with another for ordering.</summary>
     /// <param name="other">The other Roman numeral to compare with.</param>
