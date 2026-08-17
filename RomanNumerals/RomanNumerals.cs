@@ -51,8 +51,10 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
     /// <summary>Creates a copy of another Roman numeral.</summary>
     /// <param name="other">The Roman numeral to copy.</param>
     /// <exception cref="ArgumentNullException">Thrown if the other numeral is null.</exception>
-    public Roman(Roman other) : this((other ?? throw new ArgumentNullException(nameof(other)))._value)
+    public Roman(Roman other)
     {
+        ArgumentNullException.ThrowIfNull(other);
+        this._value = other._value;
     }
 
     #endregion
