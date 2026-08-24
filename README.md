@@ -206,7 +206,8 @@ if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
 
 `RomanStyle.Strict` (the default) rejects garbage characters (`ArgumentException`), out-of-range
 values (`ArgumentOutOfRangeException`), and otherwise valid but non-canonical forms
-(`FormatException`).
+(`FormatException`). A null string is an `ArgumentNullException`; empty and whitespace-only strings
+are an `ArgumentException`. `TryParse` still returns `false` for all of those rather than throwing.
 
 An undefined `RomanStyle` — anything produced by a cast, such as `(RomanStyle)7` — is rejected
 with `ArgumentOutOfRangeException` rather than silently selecting a mode. `TryParse` throws in that

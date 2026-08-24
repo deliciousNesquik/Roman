@@ -41,6 +41,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     ///     non-canonical forms such as "IIII" are rejected. For lenient parsing,
     ///     use <see cref="Parse(string, RomanStyle)"/> with <see cref="RomanStyle.Lenient"/>.
     /// </summary>
+    /// <exception cref="ArgumentNullException">The string is null.</exception>
     /// <exception cref="ArgumentException">The string is empty or contains invalid characters.</exception>
     /// <exception cref="ArgumentOutOfRangeException">The value is outside the range 1–3999.</exception>
     /// <exception cref="FormatException">The string is not in canonical format.</exception>
@@ -385,6 +386,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     /// <summary>Parses a string into a Roman numeral using strict canonical format.</summary>
     /// <param name="roman">The string to parse.</param>
     /// <returns>The Roman numeral representing the string.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if the string is null.</exception>
     /// <exception cref="ArgumentException">Thrown if the string is empty or contains invalid characters.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is outside the range 1–3999.</exception>
     /// <exception cref="FormatException">Thrown if the string is not in canonical format.</exception>
@@ -394,6 +396,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     }
 
     /// <summary>Parses the string using the specified mode (see <see cref="RomanStyle"/>).</summary>
+    /// <exception cref="ArgumentNullException">The string is null.</exception>
     /// <exception cref="ArgumentException">The string is empty or contains invalid characters.</exception>
     /// <exception cref="ArgumentOutOfRangeException">
     ///     The value is outside the range 1–3999, or <paramref name="style"/> is not a defined
@@ -535,9 +538,14 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     ///     Converts the string to a canonical form for parsing: trims whitespace and
     ///     converts to uppercase. A single normalization point for all parsing paths.
     /// </summary>
+    /// <exception cref="ArgumentNullException">The string is null.</exception>
     /// <exception cref="ArgumentException">The string is empty or consists of whitespace.</exception>
     private static string Normalize(string roman)
     {
+        // Checked separately from the emptiness test below: string.IsNullOrWhiteSpace collapses
+        // null and empty into one branch, which would report a missing argument as a bad value.
+        ArgumentNullException.ThrowIfNull(roman);
+
         if (string.IsNullOrWhiteSpace(roman))
             throw new ArgumentException("Roman numeral cannot be empty.", nameof(roman));
 
@@ -573,6 +581,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     /// <param name="roman">The string to parse.</param>
     /// <param name="style">The parsing style to use (see <see cref="RomanStyle"/>).</param>
     /// <returns>The integer value of the Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">The string is null.</exception>
     /// <exception cref="ArgumentException">The string is empty or consists of whitespace.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is outside the range 1–3999.</exception>
     /// <exception cref="FormatException">Thrown if the string is not in canonical format.</exception>

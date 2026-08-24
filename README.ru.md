@@ -207,7 +207,9 @@ if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
 
 `RomanStyle.Strict` (значение по умолчанию) отвергает мусорные символы (`ArgumentException`),
 значения вне диапазона (`ArgumentOutOfRangeException`) и валидную, но неканоническую запись
-(`FormatException`).
+(`FormatException`). Строка `null` — это `ArgumentNullException`; пустая строка и строка из одних
+пробелов — `ArgumentException`. `TryParse` на всём перечисленном по-прежнему возвращает `false`, а
+не бросает.
 
 Неопределённое значение `RomanStyle` — любое, полученное приведением, например `(RomanStyle)7` —
 отвергается с `ArgumentOutOfRangeException`, а не выбирает режим втихую. `TryParse` в этом случае

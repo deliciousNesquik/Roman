@@ -68,9 +68,37 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void Ctor_String_Null_ThrowsArgumentException()
+    public void Ctor_String_Null_ThrowsArgumentNullException()
     {
-        var ex = Assert.ThrowsExactly<ArgumentException>(() => new Roman((string)null));
+        // Отсутствующий аргумент — не то же самое, что негодное значение.
+        var ex = Assert.ThrowsExactly<ArgumentNullException>(() => new Roman((string)null));
+        Assert.AreEqual("roman", ex.ParamName);
+    }
+
+    [TestMethod]
+    public void Ctor_String_NullAndEmpty_ReportDifferentProblems()
+    {
+        // string.IsNullOrWhiteSpace схлопывает null и пустоту в один случай, из-за чего
+        // null-ссылка сообщается как «cannot be empty» с типом ArgumentException.
+        Assert.ThrowsExactly<ArgumentNullException>(() => new Roman((string)null));
+        Assert.ThrowsExactly<ArgumentException>(() => new Roman(""));
+        Assert.ThrowsExactly<ArgumentException>(() => new Roman("   "));
+    }
+
+    [TestMethod]
+    public void Parse_String_Null_ThrowsArgumentNullException()
+    {
+        var ex = Assert.ThrowsExactly<ArgumentNullException>(() => Roman.Parse((string)null));
+        Assert.AreEqual("roman", ex.ParamName);
+    }
+
+    [TestMethod]
+    [DataRow(RomanStyle.Strict)]
+    [DataRow(RomanStyle.Lenient)]
+    public void Parse_StringWithStyle_Null_ThrowsArgumentNullException(RomanStyle style)
+    {
+        // Режим разбора к null-ссылке отношения не имеет: отказ одинаков для обоих.
+        var ex = Assert.ThrowsExactly<ArgumentNullException>(() => Roman.Parse(null, style));
         Assert.AreEqual("roman", ex.ParamName);
     }
 
