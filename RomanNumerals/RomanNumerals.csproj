@@ -7,7 +7,8 @@
         
         <RootNamespace>RomanNumerals</RootNamespace>
         <PackageId>Roman</PackageId>
-        <PackageVersion>2.0.0</PackageVersion>
+        <Version>3.0.0</Version>
+        <PackageVersion>3.0.0</PackageVersion>
         <Authors>deliciousNesquik</Authors>
         <Description>A small, dependency-free C# library for Roman numerals: conversion to/from Arabic integers (1–3999), arithmetic, comparison, and lenient/strict parsing. Immutable and allocation-light.</Description>
         <PackageTags>roman;numerals;roman-numerals;converter</PackageTags>
@@ -16,6 +17,15 @@
         <PackageProjectUrl>https://github.com/deliciousNesquik/roman</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>Breaking changes.
+
+Roman-to-int conversion is now explicit: use (int)roman or roman.ToInt(). Mixed Roman/int arithmetic is range-checked instead of falling back to the predefined int operators, so new Roman(3999) + 1 throws instead of yielding 4000. Lenient parsing of multi-symbol subtractive runs is corrected: "IIX" is 8, not 10. An undefined RomanStyle and a null string now throw instead of being reinterpreted. AssemblyVersion now matches the package version. Added: operators, Equals and CompareTo against int.
+
+Ломающие изменения.
+
+Приведение Roman к int стало явным: используйте (int)roman или roman.ToInt(). Смешанная арифметика Roman/int проверяет диапазон вместо отката к встроенным операторам int, поэтому new Roman(3999) + 1 бросает исключение, а не даёт 4000. Исправлен мягкий разбор многосимвольных вычитаний: "IIX" теперь 8, а не 10. Неопределённое значение RomanStyle и строка null теперь бросают исключение. AssemblyVersion соответствует версии пакета. Добавлены операторы, Equals и CompareTo против int.
+
+https://github.com/deliciousNesquik/roman/releases/tag/v3.0.0</PackageReleaseNotes>
 
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     </PropertyGroup>

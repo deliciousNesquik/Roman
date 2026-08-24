@@ -58,7 +58,7 @@ Install-Package Roman
 
 ```xml
 <!-- PackageReference -->
-<PackageReference Include="Roman" Version="2.0.1" />
+<PackageReference Include="Roman" Version="3.0.0" />
 ```
 
 ## Quick start
