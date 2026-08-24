@@ -901,6 +901,52 @@ public class RomanTest
     }
 
     [TestMethod]
+    [DataRow(7)]
+    [DataRow(2)]
+    [DataRow(-1)]
+    [DataRow(int.MaxValue)]
+    public void Parse_UndefinedStyle_ThrowsArgumentOutOfRangeException(int raw)
+    {
+        // C# не проверяет enum-аргументы, поэтому в метод может прийти любое int-значение.
+        // Сравнение `style == Strict` при таком значении ложно, и каноническая проверка
+        // пропускается целиком — мягкий разбор без запроса мягкого разбора.
+        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => Roman.Parse("IIII", (RomanStyle)raw));
+
+        Assert.AreEqual("style", ex.ParamName);
+    }
+
+    [TestMethod]
+    public void Parse_UndefinedStyle_CanonicalInput_StillThrows()
+    {
+        // Отказ относится к аргументу, а не к входной строке: канонический вход не должен
+        // маскировать мусорный режим.
+        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => Roman.Parse("IV", (RomanStyle)7));
+
+        Assert.AreEqual("style", ex.ParamName);
+    }
+
+    [TestMethod]
+    public void TryParse_UndefinedStyle_ThrowsArgumentOutOfRangeException()
+    {
+        // `int.TryParse` на невалидном NumberStyles бросает, а не возвращает false: негодный
+        // аргумент — ошибка программиста, а не сбой разбора, от которого вызывающий оправится.
+        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => Roman.TryParse("IIII", (RomanStyle)7, out _));
+
+        Assert.AreEqual("style", ex.ParamName);
+    }
+
+    [TestMethod]
+    public void Parse_DefaultStyleValue_IsStrict()
+    {
+        // Страховка: `default(RomanStyle)` — это Strict (0), определённое значение, поэтому
+        // валидация режима его не отвергает, а разбор остаётся строгим.
+        Assert.ThrowsExactly<FormatException>(() => Roman.Parse("IIII", default));
+    }
+
+    [TestMethod]
     [DataRow("IIX")]
     [DataRow("XIIX")]
     [DataRow("IIC")]

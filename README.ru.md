@@ -107,7 +107,7 @@ var copy       = new Roman(fromInt);     // конструктор копиро�
 var r1 = Roman.Parse(500);
 var r2 = Roman.Parse("D");
 
-// TryParse — никогда не бросает
+// TryParse — никогда не бросает на негодном вводе
 if (Roman.TryParse(42, out var r3)) { /* ... */ }
 if (Roman.TryParse("invalid", out var r4)) { /* не выполнится */ }
 
@@ -208,6 +208,12 @@ if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
 `RomanStyle.Strict` (значение по умолчанию) отвергает мусорные символы (`ArgumentException`),
 значения вне диапазона (`ArgumentOutOfRangeException`) и валидную, но неканоническую запись
 (`FormatException`).
+
+Неопределённое значение `RomanStyle` — любое, полученное приведением, например `(RomanStyle)7` —
+отвергается с `ArgumentOutOfRangeException`, а не выбирает режим втихую. `TryParse` в этом случае
+тоже бросает, как `int.TryParse` на невалидном `NumberStyles`: негодный аргумент — ошибка
+вызывающего, а не сбой разбора, от которого нужно оправляться. `default(RomanStyle)` — это `Strict`,
+поэтому неинициализированное поле разбирает строго.
 
 Мягкий разбор вычитает каждый символ, который меньше наибольшего символа справа от него, а не
 только тот, что стоит перед более крупным соседом. Это даёт чтения, засвидетельствованные в

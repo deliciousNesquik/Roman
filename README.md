@@ -107,7 +107,7 @@ var copy       = new Roman(fromInt);     // copy constructor
 var r1 = Roman.Parse(500);
 var r2 = Roman.Parse("D");
 
-// TryParse — never throws
+// TryParse — never throws on bad input
 if (Roman.TryParse(42, out var r3)) { /* ... */ }
 if (Roman.TryParse("invalid", out var r4)) { /* not reached */ }
 
@@ -207,6 +207,12 @@ if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
 `RomanStyle.Strict` (the default) rejects garbage characters (`ArgumentException`), out-of-range
 values (`ArgumentOutOfRangeException`), and otherwise valid but non-canonical forms
 (`FormatException`).
+
+An undefined `RomanStyle` — anything produced by a cast, such as `(RomanStyle)7` — is rejected
+with `ArgumentOutOfRangeException` rather than silently selecting a mode. `TryParse` throws in that
+case too, the way `int.TryParse` does for an invalid `NumberStyles`: a bad argument is a caller
+error, not a parse failure to recover from. `default(RomanStyle)` is `Strict`, so an uninitialized
+field parses strictly.
 
 Lenient parsing subtracts every symbol that is smaller than the largest symbol to its right, not
 just one that precedes a larger neighbour. That gives the readings attested in Roman inscriptions

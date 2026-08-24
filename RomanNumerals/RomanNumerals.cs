@@ -395,12 +395,16 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
 
     /// <summary>Parses the string using the specified mode (see <see cref="RomanStyle"/>).</summary>
     /// <exception cref="ArgumentException">The string is empty or contains invalid characters.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">The value is outside the range 1–3999.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     The value is outside the range 1–3999, or <paramref name="style"/> is not a defined
+    ///     <see cref="RomanStyle"/> member.
+    /// </exception>
     /// <exception cref="FormatException">
     ///     In the <see cref="RomanStyle.Strict"/> mode, the string is not in canonical format.
     /// </exception>
     public static Roman Parse(string roman, RomanStyle style)
     {
+        ValidateStyle(style);
         return new Roman(ParseToInt(roman, style));
     }
 
@@ -447,13 +451,25 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         }
     }
 
-    /// <summary>Safe parsing of a string with the specified mode (see <see cref="RomanStyle"/>).</summary>
+    /// <summary>
+    ///     Safe parsing of a string with the specified mode (see <see cref="RomanStyle"/>). Input
+    ///     that cannot be parsed yields <c>false</c>; an undefined <paramref name="style"/> throws,
+    ///     because that is a caller error rather than a parse failure.
+    /// </summary>
     /// <param name="roman">The string value to parse.</param>
     /// <param name="style">The parsing style to use (see <see cref="RomanStyle"/>).</param>
     /// <param name="result">When the method returns, contains the Roman numeral representing the string, or null if the parsing fails.</param>
     /// <returns>True if the parsing is successful, false otherwise.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     <paramref name="style"/> is not a defined <see cref="RomanStyle"/> member.
+    /// </exception>
     public static bool TryParse(string roman, RomanStyle style, out Roman? result)
     {
+        // Deliberately outside the try: an undefined style is a caller bug, not a parse failure,
+        // so it must surface rather than be reported as `false`. This mirrors int.TryParse, which
+        // throws for an invalid NumberStyles instead of returning false.
+        ValidateStyle(style);
+
         try
         {
             result = Parse(roman, style);
@@ -528,6 +544,20 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         return roman.Trim().ToUpperInvariant();
     }
 
+    /// <summary>
+    ///     Rejects a <see cref="RomanStyle"/> that is not a declared member. C# does not validate
+    ///     enum arguments, so any int can arrive through a cast or an uninitialized field, and an
+    ///     unrecognised value must not be allowed to select a parsing mode by accident.
+    /// </summary>
+    /// <param name="style">The style to validate.</param>
+    /// <exception cref="ArgumentOutOfRangeException">The style is not a defined member.</exception>
+    private static void ValidateStyle(RomanStyle style)
+    {
+        if (!Enum.IsDefined(style))
+            throw new ArgumentOutOfRangeException(nameof(style), style,
+                $"Style must be a defined {nameof(RomanStyle)} value.");
+    }
+
     /// <summary>Returns the integer value of a single Roman numeral character.</summary>
     /// <param name="c">The Roman numeral character to convert.</param>
     /// <returns>The integer value of the Roman numeral character.</returns>
@@ -573,7 +603,10 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
 
         var value = (int)result;
 
-        if (style == RomanStyle.Strict && ToRoman(value) != normalized)
+        // Written as "not Lenient" rather than "is Strict" so that an undefined value reaching
+        // this far still gets validated. The public entry points reject those up front; this keeps
+        // any future internal caller from silently opting out of the canonical check.
+        if (style != RomanStyle.Lenient && ToRoman(value) != normalized)
             throw new FormatException(
                 $"'{roman}' is not a canonical Roman numeral; the canonical form is '{ToRoman(value)}'.");
 
