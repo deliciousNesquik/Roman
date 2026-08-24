@@ -8,6 +8,28 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     private readonly int _value;
 
     /// <summary>
+    ///     The representable range. These are *not* derived from <see cref="Map"/> and cannot be:
+    ///     nothing in the table caps repetition, so <see cref="ToRoman"/> would happily emit
+    ///     "MMMM" for 4000. The ceiling is the convention of at most three repetitions of the
+    ///     largest symbol, and it holds only because the checks in this file enforce it. Extending
+    ///     the numeral system therefore means choosing a new ceiling by hand and revisiting
+    ///     <see cref="MaxNumeralLength"/>.
+    /// </summary>
+    private const int MinValue = 1;
+
+    /// <inheritdoc cref="MinValue"/>
+    private const int MaxValue = 3999;
+
+    /// <summary>
+    ///     Size of the stack buffer <see cref="ToRoman"/> writes into. The longest numeral in range
+    ///     is 15 characters — MMMDCCCLXXXVIII at 3888, *not* at <see cref="MaxValue"/> where
+    ///     MMMCMXCIX is only 9, because subtractive pairs are shorter than the additive runs they
+    ///     replace — plus one character of slack. The test
+    ///     ToString_EveryValueInRange_FitsTheStackBuffer fails if this ever becomes too small.
+    /// </summary>
+    private const int MaxNumeralLength = 16;
+
+    /// <summary>
     ///     The table (value, symbol) in descending order — the single source of truth
     ///     for both directions of conversion.
     /// </summary>
@@ -32,8 +54,8 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is outside the range 1–3999.</exception>
     public Roman(int value)
     {
-        if (value is < 1 or > 3999)
-            throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 1 and 3999.");
+        if (value is < MinValue or > MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(value), $"Value must be between {MinValue} and {MaxValue}.");
         _value = value;
     }
 
@@ -76,7 +98,9 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         ArgumentNullException.ThrowIfNull(b);
 
         var sum = (long)a._value + b._value;
-        return sum > 3999 ? throw new OverflowException("Sum exceeds the maximum Roman numeral value (3999).") : new Roman((int)sum);
+        return sum > MaxValue
+            ? throw new OverflowException($"Sum exceeds the maximum Roman numeral value ({MaxValue}).")
+            : new Roman((int)sum);
     }
 
     /// <summary>Subtracts one Roman numeral from another.</summary>
@@ -91,9 +115,9 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         ArgumentNullException.ThrowIfNull(b);
 
         var result = a._value - b._value;
-        return result < 1
+        return result < MinValue
             ? throw new OverflowException(
-                "Difference is below the minimum Roman numeral value (1); Roman numerals cannot represent zero or negative values.")
+                $"Difference is below the minimum Roman numeral value ({MinValue}); Roman numerals cannot represent zero or negative values.")
             : new Roman(result);
     }
 
@@ -109,7 +133,9 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         ArgumentNullException.ThrowIfNull(b);
 
         var prod = (long)a._value * b._value;
-        return prod > 3999 ? throw new OverflowException("Product exceeds the maximum Roman numeral value (3999).") : new Roman((int)prod);
+        return prod > MaxValue
+            ? throw new OverflowException($"Product exceeds the maximum Roman numeral value ({MaxValue}).")
+            : new Roman((int)prod);
     }
 
     /// <summary>Divides one Roman numeral by another.</summary>
@@ -124,8 +150,8 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         ArgumentNullException.ThrowIfNull(b);
 
         var result = a._value / b._value;
-        return result < 1
-            ? throw new OverflowException("Quotient is below the minimum Roman numeral value (1).")
+        return result < MinValue
+            ? throw new OverflowException($"Quotient is below the minimum Roman numeral value ({MinValue}).")
             : new Roman(result);
     }
 
@@ -619,8 +645,8 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
             largestToTheRight = Math.Max(largestToTheRight, current);
         }
 
-        if (result is < 1 or > 3999)
-            throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.");
+        if (result is < MinValue or > MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(roman), $"Value must be between {MinValue} and {MaxValue}.");
 
         var value = (int)result;
 
@@ -651,10 +677,10 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     {
         return result switch
         {
-            > 3999 => throw new OverflowException(
-                $"{operation} exceeds the maximum Roman numeral value (3999)."),
+            > MaxValue => throw new OverflowException(
+                $"{operation} exceeds the maximum Roman numeral value ({MaxValue})."),
             < 1 => throw new OverflowException(
-                $"{operation} is below the minimum Roman numeral value (1); Roman numerals cannot represent zero or negative values."),
+                $"{operation} is below the minimum Roman numeral value ({MinValue}); Roman numerals cannot represent zero or negative values."),
             _ => new Roman((int)result)
         };
     }
@@ -672,10 +698,10 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         // Asserted rather than thrown so it costs nothing in release while still catching a future
         // caller that forgets: above the range the greedy loop would overrun the buffer below, and
         // below it the loop emits nothing and would silently return "".
-        Debug.Assert(value is >= 1 and <= 3999, $"ToRoman requires a value within 1-3999, got {value}.");
+        Debug.Assert(value is >= MinValue and <= MaxValue,
+            $"ToRoman requires a value within {MinValue}-{MaxValue}, got {value}.");
 
-        // Максимальная длина римского числа (15 символов) 1 символ для безопасности
-        Span<char> buffer = stackalloc char[16];
+        Span<char> buffer = stackalloc char[MaxNumeralLength];
 
         var pos = 0;
         foreach (var (num, symbol) in Map)

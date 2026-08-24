@@ -1092,6 +1092,32 @@ public class RomanTest
         Assert.AreEqual(expected, roman.ToString());
     }
 
+    [TestMethod]
+    public void ToString_EveryValueInRange_FitsTheStackBuffer()
+    {
+        // Страховка для MaxNumeralLength: если буфер окажется мал для какого-то значения,
+        // ToRoman перезапишет его границу и бросит IndexOutOfRangeException прямо здесь.
+        // Самый длинный вывод — 15 символов на 3888, а не на верхней границе диапазона:
+        // вычитательные пары короче аддитивных серий, которые они заменяют, поэтому
+        // MMMCMXCIX (3999) занимает всего 9. Границы приходится дублировать — константы
+        // private, тест до них не достаёт.
+        var longest = 0;
+        var longestAt = 0;
+
+        for (var value = 1; value <= 3999; value++)
+        {
+            var length = new Roman(value).ToString().Length;
+            if (length <= longest) continue;
+
+            longest = length;
+            longestAt = value;
+        }
+
+        Assert.AreEqual(15, longest);
+        Assert.AreEqual(3888, longestAt);
+        Assert.AreEqual("MMMDCCCLXXXVIII", new Roman(longestAt).ToString());
+    }
+
     #endregion
 
     #region Tests Round-trip
