@@ -1,4 +1,6 @@
-﻿namespace RomanNumerals;
+﻿using System.Diagnostics;
+
+namespace RomanNumerals;
 
 public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<int>, IEquatable<int>
 {
@@ -620,9 +622,13 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         // Written as "not Lenient" rather than "is Strict" so that an undefined value reaching
         // this far still gets validated. The public entry points reject those up front; this keeps
         // any future internal caller from silently opting out of the canonical check.
-        if (style != RomanStyle.Lenient && ToRoman(value) != normalized)
-            throw new FormatException(
-                $"'{roman}' is not a canonical Roman numeral; the canonical form is '{ToRoman(value)}'.");
+        if (style != RomanStyle.Lenient)
+        {
+            var canonical = ToRoman(value);
+            if (canonical != normalized)
+                throw new FormatException(
+                    $"'{roman}' is not a canonical Roman numeral; the canonical form is '{canonical}'.");
+        }
 
         return value;
     }
@@ -648,14 +654,20 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         };
     }
 
-    /// <summary>Converts an integer value to its canonical Roman numeral string representation.</summary>
-    /// <param name="value">The integer value to convert.</param>
+    /// <summary>
+    ///     Converts an integer value to its canonical Roman numeral string representation. The
+    ///     caller is required to pass a value within 1–3999; this is a precondition rather than
+    ///     input validation, since both callers already validate (<see cref="ToString"/> from the
+    ///     validated field, <see cref="ParseToInt"/> from a just-range-checked result).
+    /// </summary>
+    /// <param name="value">The integer value to convert. Must be within 1–3999.</param>
     /// <returns>The string representing the Roman numeral.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is outside the range 1–3999.</exception>
     private static string ToRoman(int value)
     {
-        if (value is < 1 or > 3999)
-            throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 1 and 3999.");
+        // Asserted rather than thrown so it costs nothing in release while still catching a future
+        // caller that forgets: above the range the greedy loop would overrun the buffer below, and
+        // below it the loop emits nothing and would silently return "".
+        Debug.Assert(value is >= 1 and <= 3999, $"ToRoman requires a value within 1-3999, got {value}.");
 
         // Максимальная длина римского числа (15 символов) 1 символ для безопасности
         Span<char> buffer = stackalloc char[16];
@@ -718,7 +730,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     /// <returns>A value indicating whether the objects are equal.</returns>
     public override bool Equals(object? obj)
     {
-        return obj is Roman other && _value == other._value;
+        return obj is Roman other && Equals(other);
     }
 
     /// <summary>Returns a hash code for this Roman numeral.</summary>
