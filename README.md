@@ -1,6 +1,6 @@
 # Roman
 
-[![NuGet Downloads](https://img.shields.io/nuget/dt/:Roman.svg)](https://www.nuget.org/packages/Roman/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Roman.svg)](https://www.nuget.org/packages/Roman/)
 [![NuGet Version](https://img.shields.io/nuget/v/Roman.svg)](https://www.nuget.org/packages/Roman/)
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
 [![C#](https://img.shields.io/badge/C%23-13.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
@@ -22,7 +22,7 @@ integers, arithmetic, and comparison. Immutable, allocation-light, and fully uni
   - [Conversions](#conversions)
   - [Arithmetic](#arithmetic)
   - [Comparison](#comparison)
-  - [Parsing modes (lenient / strict)](#parsing-modes-lenient--strict)
+  - [Parsing modes (strict / lenient)](#parsing-modes-strict--lenient)
 - [Limitations](#limitations)
 - [API reference](#api-reference)
 - [Performance](#performance)
@@ -313,7 +313,7 @@ the .NET version, a minimal reproduction, and the expected vs. actual behavior.
 
 ## License
 
-Licensed under the [MIT License](https://github.com/deliciousNesquik/roman/blob/main/LICENSE).
+Licensed under the [MIT License](https://github.com/deliciousNesquik/roman/blob/main/LICENSE.md).
 
 ## Author
 

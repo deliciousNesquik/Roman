@@ -1,10 +1,11 @@
 # Roman
 
-[![NuGet Downloads](https://img.shields.io/nuget/dt/:Roman.svg)](https://www.nuget.org/packages/Roman/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Roman.svg)](https://www.nuget.org/packages/Roman/)
 [![NuGet Version](https://img.shields.io/nuget/v/Roman.svg)](https://www.nuget.org/packages/Roman/)
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
 [![C#](https://img.shields.io/badge/C%23-13.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/deliciousNesquik/roman/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/deliciousNesquik/roman/blob/main/LICENSE.md)
+[![CodeOfConduct](https://img.shields.io/badge/code_of_conduct-enforced_)](https://github.com/deliciousNesquik/roman/blob/main/CODE_OF_CONDUCT.md)
 
 Небольшая C#-библиотека без зависимостей для работы с римскими числами: преобразование
 в/из арабских чисел, арифметика и сравнение. Иммутабельная, с минимумом аллокаций и полным
@@ -22,7 +23,7 @@
   - [Преобразования](#преобразования)
   - [Арифметика](#арифметика)
   - [Сравнение](#сравнение)
-  - [Режимы парсинга (лояльный / строгий)](#режимы-парсинга-лояльный--строгий)
+  - [Режимы парсинга (строгий / лояльный)](#режимы-парсинга-строгий--лояльный)
 - [Ограничения](#ограничения)
 - [Справочник API](#справочник-api)
 - [Производительность](#производительность)
@@ -316,7 +317,7 @@ Issues и pull request'ы приветствуются. При баг-репор
 
 ## Лицензия
 
-Распространяется под лицензией [MIT](https://github.com/deliciousNesquik/roman/blob/main/LICENSE).
+Распространяется под лицензией [MIT](https://github.com/deliciousNesquik/roman/blob/main/LICENSE.md).
 
 ## Автор
 
