@@ -570,13 +570,18 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
 
     /// <summary>Returns the integer value of a single Roman numeral character.</summary>
     /// <param name="c">The Roman numeral character to convert.</param>
+    /// <param name="paramName">
+    ///     Name of the public parameter the character came from. Threaded in from the caller so the
+    ///     exception blames the argument the consumer actually passed, rather than this method's
+    ///     local <paramref name="c"/>, which no consumer ever supplies.
+    /// </param>
     /// <returns>The integer value of the Roman numeral character.</returns>
     /// <exception cref="ArgumentException">Thrown if the character is not a valid Roman numeral character.</exception>
-    private static int GetValue(char c)
+    private static int GetValue(char c, string paramName)
     {
         return CharValues.TryGetValue(c, out var value)
             ? value
-            : throw new ArgumentException($"Invalid Roman numeral character: '{c}'.");
+            : throw new ArgumentException($"Invalid Roman numeral character: '{c}'.", paramName);
     }
 
     /// <summary>Parses a Roman numeral string into an integer, using the specified parsing style.</summary>
@@ -608,7 +613,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         long result = 0;
         for (int i = normalized.Length - 1, largestToTheRight = 0; i >= 0; i--)
         {
-            var current = GetValue(normalized[i]);
+            var current = GetValue(normalized[i], nameof(roman));
 
             result += current < largestToTheRight ? -current : current;
             largestToTheRight = Math.Max(largestToTheRight, current);

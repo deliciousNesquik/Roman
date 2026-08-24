@@ -113,6 +113,7 @@ public class RomanTest
     public void Ctor_String_InvalidCharacter_ThrowsArgumentException()
     {
         var ex = Assert.ThrowsExactly<ArgumentException>(() => new Roman("ABC"));
+        Assert.AreEqual("roman", ex.ParamName);
         StringAssert.Contains(ex.Message, "Invalid Roman numeral character");
     }
 
@@ -134,6 +135,7 @@ public class RomanTest
         // причина отказа — недопустимый символ, а не знак — подменяется на «Value must be
         // positive». Ordinal-проверка одного символа такой подмены не делает.
         var ex = Assert.ThrowsExactly<ArgumentException>(() => new Roman(roman));
+        Assert.AreEqual("roman", ex.ParamName);
         StringAssert.Contains(ex.Message, "Invalid Roman numeral character");
     }
 
