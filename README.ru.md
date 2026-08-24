@@ -209,6 +209,21 @@ if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
 значения вне диапазона (`ArgumentOutOfRangeException`) и валидную, но неканоническую запись
 (`FormatException`).
 
+Мягкий разбор вычитает каждый символ, который меньше наибольшего символа справа от него, а не
+только тот, что стоит перед более крупным соседом. Это даёт чтения, засвидетельствованные в
+римских надписях для многосимвольных вычитаний:
+
+```csharp
+Roman.Parse("IIX",  RomanStyle.Lenient).ToInt();   // 8
+Roman.Parse("XIIX", RomanStyle.Lenient).ToInt();   // 18
+Roman.Parse("IIC",  RomanStyle.Lenient).ToInt();   // 98
+```
+
+Если вычитания уводят результат ниже 1, разбор бросает `ArgumentOutOfRangeException`, а не
+возвращает значение: `Roman.Parse("IIIIIIIIIIX", RomanStyle.Lenient)` дал бы 0. Мягкий режим не
+является валидатором — он по-прежнему принимает формы, недопустимые ни в одном соглашении,
+например `"IC"` для 99.
+
 ## Ограничения
 
 - **Диапазон 1–3999** (`MMMCMXCIX`). Значения вне диапазона бросают

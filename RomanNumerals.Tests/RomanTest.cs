@@ -841,6 +841,77 @@ public class RomanTest
         Assert.AreEqual(4, result.ToInt());
     }
 
+    [TestMethod]
+    [DataRow("IIX", 8)]
+    [DataRow("IIIX", 7)]
+    [DataRow("XIIX", 18)]
+    [DataRow("IIXX", 18)]
+    [DataRow("XXIIX", 28)]
+    [DataRow("IIC", 98)]
+    public void Parse_Lenient_MultiCharacterSubtractiveRun_SubtractsEveryLesserSymbol(string roman, int expected)
+    {
+        // Каждый символ, меньший максимума справа от него, должен вычитаться. Сравнение только
+        // с непосредственным правым соседом даёт для "IIX" 10, а для "XIIX" — 20: второй I
+        // прибавляется, потому что его сосед справа тоже I. Формы IIX/XIIX/IIC засвидетельствованы
+        // в надписях и означают 8, 18 и 98.
+        var result = Roman.Parse(roman, RomanStyle.Lenient);
+
+        Assert.AreEqual(expected, result.ToInt());
+    }
+
+    [TestMethod]
+    public void TryParse_Lenient_MultiCharacterSubtractiveRun_ReportsCorrectValue()
+    {
+        var success = Roman.TryParse("IIX", RomanStyle.Lenient, out var result);
+
+        Assert.IsTrue(success);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8, result.ToInt());
+    }
+
+    [TestMethod]
+    public void Parse_Lenient_SubtractiveRunReachingZero_ThrowsArgumentOutOfRangeException()
+    {
+        // Десять I перед X дают 0 — непредставимо, поэтому это должен быть отказ, а не
+        // положительное число, полученное сложением «лишних» единиц.
+        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => Roman.Parse("IIIIIIIIIIX", RomanStyle.Lenient));
+
+        Assert.AreEqual("roman", ex.ParamName);
+        StringAssert.Contains(ex.Message, "between 1 and 3999");
+    }
+
+    [TestMethod]
+    [DataRow("IIII", 4)]
+    [DataRow("VIIII", 9)]
+    [DataRow("XXXX", 40)]
+    [DataRow("IIIIIIIIII", 10)]
+    [DataRow("VX", 5)]
+    [DataRow("MCMXCIV", 1994)]
+    [DataRow("MMMCMXCIX", 3999)]
+    [DataRow("XIX", 19)]
+    [DataRow("XLII", 42)]
+    public void Parse_Lenient_AdditiveAndCanonicalForms_Unchanged(string roman, int expected)
+    {
+        // Страховка от регрессии: в канонической записи символ, меньший максимума справа,
+        // всегда стоит непосредственно перед этим максимумом, поэтому оба правила совпадают.
+        var result = Roman.Parse(roman, RomanStyle.Lenient);
+
+        Assert.AreEqual(expected, result.ToInt());
+    }
+
+    [TestMethod]
+    [DataRow("IIX")]
+    [DataRow("XIIX")]
+    [DataRow("IIC")]
+    public void Parse_Strict_MultiCharacterSubtractiveRun_ThrowsFormatException(string roman)
+    {
+        // Строгий режим не затронут: каноническая перепроверка отвергает такую запись
+        // независимо от того, какое значение вычислил разбор.
+        var ex = Assert.ThrowsExactly<FormatException>(() => Roman.Parse(roman, RomanStyle.Strict));
+        StringAssert.Contains(ex.Message, "canonical");
+    }
+
     #endregion
 
     #region Tests Conversions

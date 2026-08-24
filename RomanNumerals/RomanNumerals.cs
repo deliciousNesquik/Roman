@@ -553,13 +553,19 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
         if (normalized.StartsWith("-"))
             throw new ArgumentOutOfRangeException(nameof(roman), "Value must be positive.");
 
+        // Scanning right to left, a symbol is subtractive when it is smaller than the largest
+        // symbol anywhere to its right — not merely smaller than its immediate right neighbour.
+        // Comparing against the neighbour alone re-adds the second I of "IIX" (its neighbour is
+        // also an I), giving 10 instead of 8 and 20 instead of 18 for "XIIX". Canonical input is
+        // unaffected either way: there, a subtractive symbol always sits directly before the
+        // largest symbol to its right.
         long result = 0;
-        for (int i = normalized.Length - 1, before = 0; i >= 0; i--)
+        for (int i = normalized.Length - 1, largestToTheRight = 0; i >= 0; i--)
         {
             var current = GetValue(normalized[i]);
 
-            result += current < before ? -current : current;
-            before = current;
+            result += current < largestToTheRight ? -current : current;
+            largestToTheRight = Math.Max(largestToTheRight, current);
         }
 
         if (result is < 1 or > 3999)

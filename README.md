@@ -208,6 +208,20 @@ if (Roman.TryParse("IIII", RomanStyle.Lenient, out var r))
 values (`ArgumentOutOfRangeException`), and otherwise valid but non-canonical forms
 (`FormatException`).
 
+Lenient parsing subtracts every symbol that is smaller than the largest symbol to its right, not
+just one that precedes a larger neighbour. That gives the readings attested in Roman inscriptions
+for multi-symbol subtractive runs:
+
+```csharp
+Roman.Parse("IIX",  RomanStyle.Lenient).ToInt();   // 8
+Roman.Parse("XIIX", RomanStyle.Lenient).ToInt();   // 18
+Roman.Parse("IIC",  RomanStyle.Lenient).ToInt();   // 98
+```
+
+If the subtractions take the result below 1, parsing throws `ArgumentOutOfRangeException` rather
+than returning a value: `Roman.Parse("IIIIIIIIIIX", RomanStyle.Lenient)` would be 0. Lenient mode
+is not a validator — it still accepts forms no convention allows, such as `"IC"` for 99.
+
 ## Limitations
 
 - **Range is 1–3999** (`MMMCMXCIX`). Values outside this range throw
