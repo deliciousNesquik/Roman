@@ -846,10 +846,10 @@ public class RomanTest
     #region Tests Conversions
 
     [TestMethod]
-    public void ImplicitConversion_ToInt_ReturnsCorrectValue()
+    public void ExplicitConversion_ToInt_ReturnsCorrectValue()
     {
         var roman = new Roman(42);
-        int value = roman;
+        var value = (int)roman;
 
         Assert.AreEqual(42, value);
     }
@@ -942,6 +942,252 @@ public class RomanTest
         var parsed = new Roman(str);
 
         Assert.AreEqual(original, parsed.ToInt());
+    }
+
+    #endregion
+
+    #region Tests Mixed Roman/int Arithmetic
+
+    // The 1-3999 guard must hold for every arithmetic expression involving a Roman, not only for
+    // Roman-with-Roman. These tests pin that contract down: before the int overloads existed, the
+    // implicit Roman-to-int conversion let overload resolution select the predefined int operators
+    // and every one of these silently produced an out-of-range int instead of throwing.
+
+    [TestMethod]
+    public void Add_RomanPlusInt_ExceedsMaximum_ThrowsOverflowException()
+    {
+        var max = new Roman(3999);
+
+        Assert.ThrowsExactly<OverflowException>(() => { _ = max + 1; });
+    }
+
+    [TestMethod]
+    public void Add_IntPlusRoman_ExceedsMaximum_ThrowsOverflowException()
+    {
+        var max = new Roman(3999);
+
+        Assert.ThrowsExactly<OverflowException>(() => { _ = 1 + max; });
+    }
+
+    [TestMethod]
+    public void Subtract_RomanMinusInt_BelowMinimum_ThrowsOverflowException()
+    {
+        var five = new Roman(5);
+
+        Assert.ThrowsExactly<OverflowException>(() => { _ = five - 5; });
+    }
+
+    [TestMethod]
+    public void Multiply_RomanTimesInt_ExceedsMaximum_ThrowsOverflowException()
+    {
+        var value = new Roman(2000);
+
+        Assert.ThrowsExactly<OverflowException>(() => { _ = value * 2; });
+    }
+
+    [TestMethod]
+    public void Divide_RomanByLargerInt_BelowMinimum_ThrowsOverflowException()
+    {
+        var three = new Roman(3);
+
+        Assert.ThrowsExactly<OverflowException>(() => { _ = three / 4; });
+    }
+
+    [TestMethod]
+    public void Add_RomanPlusInt_ValidResult_StaysRoman()
+    {
+        var result = new Roman(10) + 5;
+
+        // Currently "15": the expression collapses to int, so the Roman formatting is lost.
+        Assert.AreEqual("XV", result.ToString());
+    }
+
+    [TestMethod]
+    public void Equality_RomanEqualsInt_AgreesWithEqualsObject()
+    {
+        var roman = new Roman(42);
+
+        // `roman == 42` compiles to an int comparison (true) while Equals(object) returns false.
+        Assert.AreEqual(roman.Equals(42), roman == 42);
+    }
+
+    [TestMethod]
+    public void ExplicitInt_NullRoman_ThrowsArgumentNullException()
+    {
+        Roman nothing = null;
+
+        Assert.ThrowsExactly<ArgumentNullException>(() => { _ = (int)nothing; });
+    }
+
+    [TestMethod]
+    [DataRow(10, 5, "XV")]
+    [DataRow(1, 3998, "MMMCMXCIX")]
+    [DataRow(5, -3, "II")]
+    public void Add_RomanPlusInt_ValidResult_ReturnsExpectedRoman(int left, int right, string expected)
+    {
+        // A negative or out-of-range operand is legal as long as the *result* is representable.
+        Assert.AreEqual(expected, (new Roman(left) + right).ToString());
+    }
+
+    [TestMethod]
+    public void Subtract_IntMinusRoman_ValidResult_ReturnsRoman()
+    {
+        Assert.AreEqual("XXX", (50 - new Roman(20)).ToString());
+    }
+
+    [TestMethod]
+    public void Multiply_IntTimesRoman_ValidResult_ReturnsRoman()
+    {
+        Assert.AreEqual("LVI", (7 * new Roman(8)).ToString());
+    }
+
+    [TestMethod]
+    public void Divide_IntByRoman_TruncatesTowardZero()
+    {
+        Assert.AreEqual("III", (10 / new Roman(3)).ToString());
+    }
+
+    [TestMethod]
+    public void Add_RomanPlusIntMaxValue_ThrowsOverflowException()
+    {
+        // Widening to long is what keeps this from wrapping around into a valid-looking result.
+        var one = new Roman(1);
+
+        Assert.ThrowsExactly<OverflowException>(() => { _ = one + int.MaxValue; });
+    }
+
+    [TestMethod]
+    public void Subtract_RomanMinusIntMinValue_ThrowsOverflowException()
+    {
+        var one = new Roman(1);
+
+        Assert.ThrowsExactly<OverflowException>(() => { _ = one - int.MinValue; });
+    }
+
+    [TestMethod]
+    public void Divide_RomanByZero_ThrowsDivideByZeroException()
+    {
+        // Unreachable while both operands were Roman, since zero is not representable.
+        var ten = new Roman(10);
+
+        Assert.ThrowsExactly<DivideByZeroException>(() => { _ = ten / 0; });
+    }
+
+    [TestMethod]
+    public void Arithmetic_NullRomanOperand_ThrowsArgumentNullException()
+    {
+        Roman nothing = null;
+
+        Assert.AreEqual("a", Assert.ThrowsExactly<ArgumentNullException>(() => { _ = nothing + 1; }).ParamName);
+        Assert.AreEqual("b", Assert.ThrowsExactly<ArgumentNullException>(() => { _ = 1 + nothing; }).ParamName);
+        Assert.AreEqual("a", Assert.ThrowsExactly<ArgumentNullException>(() => { _ = nothing - 1; }).ParamName);
+        Assert.AreEqual("a", Assert.ThrowsExactly<ArgumentNullException>(() => { _ = nothing * 1; }).ParamName);
+        Assert.AreEqual("a", Assert.ThrowsExactly<ArgumentNullException>(() => { _ = nothing / 1; }).ParamName);
+    }
+
+    #endregion
+
+    #region Tests Comparison and Equality against int
+
+    [TestMethod]
+    public void Comparison_RomanAgainstInt_MatchesIntegerOrdering()
+    {
+        var fifty = new Roman(50);
+
+        Assert.IsTrue(fifty > 30);
+        Assert.IsFalse(fifty > 50);
+        Assert.IsTrue(fifty >= 50);
+        Assert.IsTrue(fifty < 80);
+        Assert.IsTrue(fifty <= 50);
+        Assert.IsFalse(fifty < 50);
+    }
+
+    [TestMethod]
+    public void Comparison_IntAgainstRoman_MatchesIntegerOrdering()
+    {
+        var fifty = new Roman(50);
+
+        Assert.IsTrue(80 > fifty);
+        Assert.IsFalse(30 > fifty);
+        Assert.IsTrue(50 >= fifty);
+        Assert.IsTrue(30 < fifty);
+        Assert.IsTrue(50 <= fifty);
+    }
+
+    [TestMethod]
+    public void Comparison_RomanAgainstOutOfRangeInt_DoesNotThrow()
+    {
+        // Comparison never constructs a Roman, so an unrepresentable bound is a fair question.
+        var max = new Roman(3999);
+
+        Assert.IsTrue(max < 5000);
+        Assert.IsTrue(max > 0);
+        Assert.IsFalse(max == 4000);
+    }
+
+    [TestMethod]
+    public void Comparison_NullRomanAgainstInt_SortsLowest()
+    {
+        Roman nothing = null;
+
+        Assert.IsFalse(nothing > 1);
+        Assert.IsTrue(nothing < 1);
+        Assert.IsFalse(nothing >= 1);
+        Assert.IsTrue(nothing <= 1);
+
+        Assert.IsTrue(1 > nothing);
+        Assert.IsFalse(1 < nothing);
+        Assert.IsTrue(1 >= nothing);
+        Assert.IsFalse(1 <= nothing);
+    }
+
+    [TestMethod]
+    public void Equality_RomanAgainstInt_ComparesByValue()
+    {
+        var roman = new Roman(42);
+
+        Assert.IsTrue(roman == 42);
+        Assert.IsTrue(42 == roman);
+        Assert.IsFalse(roman != 42);
+        Assert.IsTrue(roman != 43);
+    }
+
+    [TestMethod]
+    public void Equality_NullRomanAgainstInt_ReturnsFalse()
+    {
+        Roman nothing = null;
+
+        Assert.IsFalse(nothing == 42);
+        Assert.IsFalse(42 == nothing);
+        Assert.IsTrue(nothing != 42);
+    }
+
+    [TestMethod]
+    public void EqualsInt_MatchesValue()
+    {
+        var roman = new Roman(42);
+
+        Assert.IsTrue(roman.Equals(42));
+        Assert.IsFalse(roman.Equals(43));
+    }
+
+    [TestMethod]
+    public void CompareToInt_MatchesIntegerOrdering()
+    {
+        var roman = new Roman(42);
+
+        Assert.IsTrue(roman.CompareTo(30) > 0);
+        Assert.AreEqual(0, roman.CompareTo(42));
+        Assert.IsTrue(roman.CompareTo(50) < 0);
+    }
+
+    [TestMethod]
+    public void GetHashCode_RomanAndEqualInt_Agree()
+    {
+        // Equals(int) returning true obliges the hash codes to match.
+        var roman = new Roman(42);
+
+        Assert.AreEqual(42.GetHashCode(), roman.GetHashCode());
     }
 
     #endregion

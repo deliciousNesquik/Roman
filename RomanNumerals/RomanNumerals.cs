@@ -1,6 +1,6 @@
 ﻿namespace RomanNumerals;
 
-public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
+public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<int>, IEquatable<int>
 {
     /// <summary>The value of a number in the Arabic numeral system.</summary>
     private readonly int _value;
@@ -188,6 +188,189 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     #endregion
 
+    #region Arithmetic and Comparison with int
+
+    // These overloads exist so that mixed Roman/int expressions bind to Roman's own range-checked
+    // operators. Without them -- and with any Roman-to-int conversion in scope -- overload
+    // resolution selects the predefined int operators and silently bypasses the 1-3999 guard.
+    // The int operand is an Arabic quantity: only the *result* has to be representable, so an
+    // out-of-range operand is legal as long as the result is not. Operands widen to long before the
+    // range check so that a large int operand cannot overflow the intermediate value.
+
+    /// <summary>Adds an integer quantity to a Roman numeral.</summary>
+    /// <param name="a">The Roman numeral.</param>
+    /// <param name="b">The integer quantity to add.</param>
+    /// <returns>The sum as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator +(Roman a, int b)
+    {
+        ArgumentNullException.ThrowIfNull(a);
+        return FromArithmetic((long)a._value + b, "Sum");
+    }
+
+    /// <summary>Adds a Roman numeral to an integer quantity.</summary>
+    /// <param name="a">The integer quantity.</param>
+    /// <param name="b">The Roman numeral.</param>
+    /// <returns>The sum as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator +(int a, Roman b)
+    {
+        ArgumentNullException.ThrowIfNull(b);
+        return FromArithmetic((long)a + b._value, "Sum");
+    }
+
+    /// <summary>Subtracts an integer quantity from a Roman numeral.</summary>
+    /// <param name="a">The Roman numeral.</param>
+    /// <param name="b">The integer quantity to subtract.</param>
+    /// <returns>The difference as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator -(Roman a, int b)
+    {
+        ArgumentNullException.ThrowIfNull(a);
+        return FromArithmetic((long)a._value - b, "Difference");
+    }
+
+    /// <summary>Subtracts a Roman numeral from an integer quantity.</summary>
+    /// <param name="a">The integer quantity.</param>
+    /// <param name="b">The Roman numeral to subtract.</param>
+    /// <returns>The difference as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator -(int a, Roman b)
+    {
+        ArgumentNullException.ThrowIfNull(b);
+        return FromArithmetic((long)a - b._value, "Difference");
+    }
+
+    /// <summary>Multiplies a Roman numeral by an integer quantity.</summary>
+    /// <param name="a">The Roman numeral.</param>
+    /// <param name="b">The integer multiplier.</param>
+    /// <returns>The product as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator *(Roman a, int b)
+    {
+        ArgumentNullException.ThrowIfNull(a);
+        return FromArithmetic((long)a._value * b, "Product");
+    }
+
+    /// <summary>Multiplies an integer quantity by a Roman numeral.</summary>
+    /// <param name="a">The integer multiplier.</param>
+    /// <param name="b">The Roman numeral.</param>
+    /// <returns>The product as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator *(int a, Roman b)
+    {
+        ArgumentNullException.ThrowIfNull(b);
+        return FromArithmetic((long)a * b._value, "Product");
+    }
+
+    /// <summary>Divides a Roman numeral by an integer quantity (integer division).</summary>
+    /// <param name="a">The Roman numeral.</param>
+    /// <param name="b">The integer divisor.</param>
+    /// <returns>The quotient as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="DivideByZeroException">If the divisor is zero.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator /(Roman a, int b)
+    {
+        ArgumentNullException.ThrowIfNull(a);
+        return FromArithmetic(a._value / b, "Quotient");
+    }
+
+    /// <summary>Divides an integer quantity by a Roman numeral (integer division).</summary>
+    /// <param name="a">The integer dividend.</param>
+    /// <param name="b">The Roman numeral divisor.</param>
+    /// <returns>The quotient as a Roman numeral.</returns>
+    /// <exception cref="ArgumentNullException">If the Roman operand is null.</exception>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    public static Roman operator /(int a, Roman b)
+    {
+        ArgumentNullException.ThrowIfNull(b);
+        return FromArithmetic(a / b._value, "Quotient");
+    }
+
+    // Comparison and equality against int keep the null-sorts-lowest semantics of the all-Roman
+    // operators. An int is never null, so there is no both-null case to consider.
+
+    /// <summary>Determines whether a Roman numeral is greater than an integer value.</summary>
+    public static bool operator >(Roman? a, int b)
+    {
+        return a is not null && a._value > b;
+    }
+
+    /// <summary>Determines whether an integer value is greater than a Roman numeral.</summary>
+    public static bool operator >(int a, Roman? b)
+    {
+        return b is null || a > b._value;
+    }
+
+    /// <summary>Determines whether a Roman numeral is less than an integer value.</summary>
+    public static bool operator <(Roman? a, int b)
+    {
+        return a is null || a._value < b;
+    }
+
+    /// <summary>Determines whether an integer value is less than a Roman numeral.</summary>
+    public static bool operator <(int a, Roman? b)
+    {
+        return b is not null && a < b._value;
+    }
+
+    /// <summary>Determines whether a Roman numeral is greater than or equal to an integer value.</summary>
+    public static bool operator >=(Roman? a, int b)
+    {
+        return a is not null && a._value >= b;
+    }
+
+    /// <summary>Determines whether an integer value is greater than or equal to a Roman numeral.</summary>
+    public static bool operator >=(int a, Roman? b)
+    {
+        return b is null || a >= b._value;
+    }
+
+    /// <summary>Determines whether a Roman numeral is less than or equal to an integer value.</summary>
+    public static bool operator <=(Roman? a, int b)
+    {
+        return a is null || a._value <= b;
+    }
+
+    /// <summary>Determines whether an integer value is less than or equal to a Roman numeral.</summary>
+    public static bool operator <=(int a, Roman? b)
+    {
+        return b is not null && a <= b._value;
+    }
+
+    /// <summary>Determines whether a Roman numeral equals an integer value.</summary>
+    public static bool operator ==(Roman? a, int b)
+    {
+        return a is not null && a._value == b;
+    }
+
+    /// <summary>Determines whether an integer value equals a Roman numeral.</summary>
+    public static bool operator ==(int a, Roman? b)
+    {
+        return b is not null && a == b._value;
+    }
+
+    /// <summary>Determines whether a Roman numeral differs from an integer value.</summary>
+    public static bool operator !=(Roman? a, int b)
+    {
+        return !(a == b);
+    }
+
+    /// <summary>Determines whether an integer value differs from a Roman numeral.</summary>
+    public static bool operator !=(int a, Roman? b)
+    {
+        return !(a == b);
+    }
+
+    #endregion
+
     #region Parsing and Conversion
 
     /// <summary>Parses an integer value into a Roman numeral.</summary>
@@ -288,11 +471,18 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         }
     }
 
-    /// <summary>Implicitly converts a Roman numeral to its integer value.</summary>
+    /// <summary>
+    ///     Explicitly converts a Roman numeral to its integer value. The conversion is deliberately
+    ///     explicit: an implicit one would make Roman's own operators inapplicable in any mixed
+    ///     Roman/int expression (int-to-Roman is explicit, so they are not candidates), letting
+    ///     overload resolution fall back to the predefined int operators and silently bypass the
+    ///     1–3999 range guard. Being explicit also permits the null check below, which the
+    ///     Framework Design Guidelines forbid in an implicit conversion.
+    /// </summary>
     /// <param name="r">The Roman numeral to convert.</param>
     /// <returns>The integer value of the Roman numeral.</returns>
     /// <exception cref="ArgumentNullException">Thrown when the Roman numeral is null.</exception>
-    public static implicit operator int(Roman r)
+    public static explicit operator int(Roman r)
     {
         ArgumentNullException.ThrowIfNull(r);
         return r._value;
@@ -384,6 +574,27 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         return value;
     }
 
+    /// <summary>
+    ///     Validates the result of an arithmetic operation against the representable range and
+    ///     wraps it. Callers pass a widened <see cref="long"/> so that an operand large enough to
+    ///     overflow <see cref="int"/> is still caught here rather than wrapping around silently.
+    /// </summary>
+    /// <param name="result">The widened arithmetic result.</param>
+    /// <param name="operation">The noun naming the operation, used in the exception message.</param>
+    /// <returns>The result as a Roman numeral.</returns>
+    /// <exception cref="OverflowException">If the result falls outside 1–3999.</exception>
+    private static Roman FromArithmetic(long result, string operation)
+    {
+        return result switch
+        {
+            > 3999 => throw new OverflowException(
+                $"{operation} exceeds the maximum Roman numeral value (3999)."),
+            < 1 => throw new OverflowException(
+                $"{operation} is below the minimum Roman numeral value (1); Roman numerals cannot represent zero or negative values."),
+            _ => new Roman((int)result)
+        };
+    }
+
     /// <summary>Converts an integer value to its canonical Roman numeral string representation.</summary>
     /// <param name="value">The integer value to convert.</param>
     /// <returns>The string representing the Roman numeral.</returns>
@@ -426,6 +637,27 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
     public bool Equals(Roman? other)
     {
         return other is not null && _value == other._value;
+    }
+
+    /// <summary>Compares this Roman numeral with an integer value for ordering.</summary>
+    /// <param name="other">The integer value to compare with.</param>
+    /// <returns>A value indicating the relative order of the two values.</returns>
+    public int CompareTo(int other)
+    {
+        return _value.CompareTo(other);
+    }
+
+    /// <summary>
+    ///     Compares this Roman numeral with an integer value for equality. Present so that
+    ///     <c>roman.Equals(42)</c> agrees with <c>roman == 42</c>; the <see cref="Equals(object?)"/>
+    ///     overload still returns false for a boxed int, matching how the framework's own numeric
+    ///     types behave.
+    /// </summary>
+    /// <param name="other">The integer value to compare with.</param>
+    /// <returns>A value indicating whether the two values are equal.</returns>
+    public bool Equals(int other)
+    {
+        return _value == other;
     }
 
     /// <summary>Compares this Roman numeral with another object for equality.</summary>

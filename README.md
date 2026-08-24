@@ -111,8 +111,9 @@ var r2 = Roman.Parse("D");
 if (Roman.TryParse(42, out var r3)) { /* ... */ }
 if (Roman.TryParse("invalid", out var r4)) { /* not reached */ }
 
-// Implicit Roman -> int
-int value = new Roman(42);     // 42
+// Explicit Roman -> int (implicit would let mixed expressions bypass the range guard)
+var value = (int)new Roman(42);   // 42
+var same  = new Roman(42).ToInt(); // 42
 
 // Explicit int -> Roman (can throw)
 var r5 = (Roman)99;            // XCIX
@@ -133,6 +134,25 @@ new Roman(10) / new Roman(3);   // III (3, integer division)
 
 new Roman(3999) + new Roman(1); // throws: result > 3999
 new Roman(5)    - new Roman(5); // throws: result < 1
+```
+
+An `int` operand works on either side and is range-checked identically — the operand is read as an
+Arabic quantity, so only the *result* has to be representable:
+
+```csharp
+new Roman(10) + 5;              // XV  (15)
+50 - new Roman(20);             // XXX (30)
+new Roman(5)  + -3;             // II  (2, out-of-range operand, in-range result)
+new Roman(3999) + 1;            // throws OverflowException
+new Roman(10) / 0;              // throws DivideByZeroException
+```
+
+Comparison and equality against an `int` never construct a `Roman`, so an unrepresentable bound is
+a fair question:
+
+```csharp
+new Roman(3999) < 5000;         // true
+new Roman(42) == 42;            // true  (agrees with .Equals(42))
 ```
 
 ### Comparison
@@ -232,17 +252,19 @@ values (`ArgumentOutOfRangeException`), and otherwise valid but non-canonical fo
 | `ToInt()` | Returns the Arabic value |
 | `ToString()` | Returns the canonical Roman string |
 | `CompareTo(Roman? other)` | Compares with another value |
+| `CompareTo(int other)` | Compares with an integer value |
 | `Equals(Roman? other)` | Value equality |
+| `Equals(int other)` | Value equality against an integer |
 | `GetHashCode()` | Hash code |
 
 ### Operators
 
 | Operator | Description |
 |----------|-------------|
-| `+ - * /` | Arithmetic (integer division) |
-| `> < >= <=` | Comparison (null sorts lowest) |
-| `== !=` | Equality |
-| `(int)roman` | Implicit conversion `Roman -> int` |
+| `+ - * /` | Arithmetic (integer division), `Roman` or `int` on either side |
+| `> < >= <=` | Comparison (null sorts lowest), `Roman` or `int` on either side |
+| `== !=` | Equality, `Roman` or `int` on either side |
+| `(int)roman` | Explicit conversion `Roman -> int` |
 | `(Roman)value` | Explicit conversion `int -> Roman` |
 
 ## Performance
