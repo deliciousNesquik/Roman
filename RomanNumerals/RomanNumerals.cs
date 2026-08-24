@@ -589,7 +589,12 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>, IComparable<i
     {
         var normalized = Normalize(roman);
 
-        if (normalized.StartsWith("-"))
+        // The char overload is always ordinal. The string overload defaults to CurrentCulture,
+        // a linguistic comparison under which ICU treats U+200B and U+00AD as ignorable, so
+        // "\u200B-X" "starts with" '-' and a bad character gets misreported as a sign problem.
+        // Worse, the answer depends on the consuming app's globalization mode, so the exception
+        // type for a given input would not be stable across environments. (CA1310)
+        if (normalized.StartsWith('-'))
             throw new ArgumentOutOfRangeException(nameof(roman), "Value must be positive.");
 
         // Scanning right to left, a symbol is subtractive when it is smaller than the largest

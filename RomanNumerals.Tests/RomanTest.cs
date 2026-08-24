@@ -125,6 +125,19 @@ public class RomanTest
     }
 
     [TestMethod]
+    [DataRow("\u200B-X")] // zero-width space, then hyphen
+    [DataRow("\u00AD-X")] // soft hyphen, then hyphen
+    public void Ctor_String_IgnorableCharBeforeHyphen_ReportsInvalidCharacter(string roman)
+    {
+        // ICU считает U+200B и U+00AD игнорируемыми при сравнении, поэтому культуро-зависимый
+        // StartsWith("-") отвечает true для строки, которая на '-' не начинается, и настоящая
+        // причина отказа — недопустимый символ, а не знак — подменяется на «Value must be
+        // positive». Ordinal-проверка одного символа такой подмены не делает.
+        var ex = Assert.ThrowsExactly<ArgumentException>(() => new Roman(roman));
+        StringAssert.Contains(ex.Message, "Invalid Roman numeral character");
+    }
+
+    [TestMethod]
     public void Ctor_String_ExceedsUpperLimit_ThrowsArgumentOutOfRangeException()
     {
         // MMMM = 4000
