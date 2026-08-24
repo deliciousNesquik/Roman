@@ -423,13 +423,15 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void GreaterThan_WithNull_ReturnsFalse()
+    public void GreaterThan_NullOperands_NullSortsLowest()
     {
-        var a = new Roman(5);
-        Roman b = null;
+        var value = new Roman(5);
+        Roman firstNull = null;
+        Roman secondNull = null;
 
-        Assert.IsTrue(a > b);
-        Assert.IsFalse(b > a);
+        Assert.IsTrue(value > firstNull, "a value is greater than null");
+        Assert.IsFalse(firstNull > value, "null is not greater than a value");
+        Assert.IsFalse(firstNull > secondNull, "null is not greater than null");
     }
 
     [TestMethod]
@@ -443,13 +445,15 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void LessThan_NullAndNonNull_ReturnsTrue()
+    public void LessThan_NullOperands_NullSortsLowest()
     {
-        Roman a = null;
-        var b = new Roman(5);
+        var value = new Roman(5);
+        Roman firstNull = null;
+        Roman secondNull = null;
 
-        Assert.IsTrue(a < b);
-        Assert.IsFalse(b < a);
+        Assert.IsTrue(firstNull < value, "null is less than a value");
+        Assert.IsFalse(value < firstNull, "a value is not less than null");
+        Assert.IsFalse(firstNull < secondNull, "null is not less than null");
     }
 
     [TestMethod]
@@ -471,12 +475,15 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void GreaterOrEqual_BothNull_ReturnsTrue()
+    public void GreaterOrEqual_NullOperands_NullSortsLowest()
     {
-        Roman a = null;
-        Roman b = null;
+        var value = new Roman(5);
+        Roman firstNull = null;
+        Roman secondNull = null;
 
-        Assert.IsTrue(a >= b);
+        Assert.IsTrue(value >= firstNull, "a value is greater than or equal to null");
+        Assert.IsFalse(firstNull >= value, "null is not greater than or equal to a value");
+        Assert.IsTrue(firstNull >= secondNull, "null is greater than or equal to null");
     }
 
     [TestMethod]
@@ -498,12 +505,15 @@ public class RomanTest
     }
 
     [TestMethod]
-    public void LessOrEqual_NullValue_ReturnsTrue()
+    public void LessOrEqual_NullOperands_NullSortsLowest()
     {
-        Roman a = null;
-        var b = new Roman(5);
+        var value = new Roman(5);
+        Roman firstNull = null;
+        Roman secondNull = null;
 
-        Assert.IsTrue(a <= b);
+        Assert.IsTrue(firstNull <= value, "null is less than or equal to a value");
+        Assert.IsFalse(value <= firstNull, "a value is not less than or equal to null");
+        Assert.IsTrue(firstNull <= secondNull, "null is less than or equal to null");
     }
 
     #endregion
